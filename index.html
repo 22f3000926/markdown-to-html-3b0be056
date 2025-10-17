@@ -1,105 +1,338 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Markdown to HTML Renderer</title>
-  
-  <!-- Highlight.js default style -->
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css"
-    integrity="sha512-YAVElMUpWLoZKRCKxEjKRHL3dwApmO0QrgxaJcOvFAZWcTRFv8sq4hr4e3vK7nj62lmB6a0C+PgVAAXSmd6syQ=="
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"
-  />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Markdown Tabs Viewer</title>
+<style>
+  /* Reset and base styles */
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    margin: 1rem;
+    background-color: #f9f9f9;
+    color: #333;
+  }
+  #markdown-tabs {
+    display: flex;
+    border-bottom: 2px solid #ccc;
+    margin-bottom: 0.5rem;
+  }
+  #markdown-tabs button {
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 0.5em 1em;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+  }
+  #markdown-tabs button[aria-selected="true"] {
+    border-bottom-color: #007acc;
+    color: #007acc;
+  }
+  #markdown-output, #markdown-source-container {
+    border: 1px solid #ccc;
+    border-radius: 0 0 4px 4px;
+    background: white;
+    padding: 1em;
+    min-height: 300px;
+    overflow: auto;
+    box-sizing: border-box;
+  }
+  #markdown-source {
+    width: 100%;
+    height: 300px;
+    font-family: 'Courier New', monospace;
+    white-space: pre-wrap;
+    outline: none;
+    border: none;
+    resize: none;
+  }
+  #markdown-source-container {
+    padding: 0; /* override padding on container when showing textarea */
+  }
+  #markdown-source-label {
+    font-size: 0.875rem;
+    color: #555;
+    margin-bottom: 0.25em;
+  }
+  #markdown-word-count {
+    display: inline-block;
+    background-color: #007acc;
+    color: white;
+    font-weight: 700;
+    font-size: 0.75rem;
+    padding: 0.15em 0.5em;
+    border-radius: 12px;
+    margin-left: 1em;
+    vertical-align: middle;
+    font-feature-settings: "tnum";
+  }
+  #error-message {
+    color: red;
+    font-weight: 600;
+    margin-top: 0.5em;
+  }
 
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-        Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-      max-width: 900px;
-      margin: 2rem auto;
-      padding: 0 1rem;
-      background-color: #f9f9f9;
-      color: #24292e;
-    }
-    #markdown-output {
-      background: white;
-      padding: 2rem;
-      border-radius: 6px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      overflow-wrap: break-word;
-    }
-    pre.hljs {
-      padding: 1rem !important;
-      border-radius: 4px;
-      font-size: 0.95rem;
-    }
-    h1, h2, h3, h4, h5, h6 {
-      margin-top: 1.5rem;
-      margin-bottom: 0.5rem;
-      font-weight: 600;
-    }
-    p {
-      line-height: 1.6;
-      margin-bottom: 1rem;
-    }
-  </style>
+  /* Rendered Markdown styles */
+  #markdown-output h1, #markdown-output h2, #markdown-output h3, #markdown-output h4, #markdown-output h5, #markdown-output h6 {
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+  }
+  #markdown-output p {
+    margin: 0.5em 0;
+  }
+  #markdown-output pre {
+    background-color: #f3f3f3;
+    padding: 0.75em;
+    border-radius: 4px;
+    overflow-x: auto;
+  }
+  #markdown-output code {
+    background-color: #f3f3f3;
+    padding: 0.15em 0.3em;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 0.95em;
+  }
+  #markdown-output blockquote {
+    border-left: 4px solid #ccc;
+    margin-left: 0;
+    padding-left: 1em;
+    color: #666;
+    font-style: italic;
+    background-color: #f9f9f9;
+  }
+</style>
 </head>
 <body>
-  <h1>Markdown Renderer</h1>
-  <div id="markdown-output">Loading markdown content...</div>
 
-  <!-- marked library from CDN -->
-  <script
-    src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"
-    integrity="sha256-n4gHtYq2cM2P5EyVgYNV493QFGi1/YrTqFidXItbiFs="
-    crossorigin="anonymous"
-  ></script>
-  <!-- highlight.js library from CDN -->
-  <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"
-    integrity="sha512-cp5pqPnvKxrryxW8UuCfXs17uyn3/WI9s+daka3PJTJNd9ViODvHYZIXp0kSXNWeQ8XiVmz4kjkP7E5rSC6yTA=="
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"
-  ></script>
+<h1>Markdown Tabs Viewer<span id="markdown-word-count" aria-live="polite" aria-atomic="true">0</span></h1>
 
-  <script>
-    // Immediately Invoked Async Function to fetch and render markdown
-    (async function () {
-      const outputEl = document.getElementById('markdown-output');
+<div id="markdown-tabs" role="tablist" aria-label="Markdown view tabs">
+  <button role="tab" aria-selected="true" aria-controls="markdown-output" id="tab-rendered" tabindex="0">Rendered</button>
+  <button role="tab" aria-selected="false" aria-controls="markdown-source-container" id="tab-source" tabindex="-1">Source</button>
+</div>
 
-      try {
-        const response = await fetch('input.md');
-        if (!response.ok) throw new Error(`Failed to fetch input.md: ${response.status} ${response.statusText}`);
+<div id="markdown-source-label" aria-live="polite" aria-atomic="true">Source: Default content</div>
 
-        const markdownText = await response.text();
+<!-- Container for rendered markdown -->
+<div id="markdown-output" role="tabpanel" aria-labelledby="tab-rendered" tabindex="0"></div>
 
-        // Parse markdown into HTML
-        const htmlContent = marked.parse(markdownText, {
-          // Use GitHub flavored markdown
-          gfm: true,
-          breaks: true,
-        });
+<!-- Container for source textarea, initially hidden -->
+<div id="markdown-source-container" role="tabpanel" aria-labelledby="tab-source" tabindex="0" hidden>
+  <textarea id="markdown-source" spellcheck="false" aria-label="Markdown source editor"></textarea>
+</div>
 
-        // Set the output element's HTML
-        outputEl.innerHTML = htmlContent;
+<div id="error-message" role="alert" aria-live="assertive" style="display:none;"></div>
 
-        // Highlight all code blocks
-        document.querySelectorAll('#markdown-output pre code').forEach((block) => {
-          try {
-            hljs.highlightElement(block);
-          } catch (e) {
-            // In case language is unknown or highlighting fails
-            console.warn('Highlight.js failed on a code block:', e);
-          }
-        });
-      } catch (error) {
-        outputEl.textContent = 'Error loading markdown content: ' + error.message;
-        console.error(error);
+<script>
+// Minimal Markdown parser (marked-inspired, simplified)
+// Only supports basic Markdown elements, for demonstration purposes.
+function simpleMarkdownParse(md) {
+  if (!md) return '';
+  // Escape HTML entities
+  let html = md.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  // Convert headers
+  html = html.replace(/^###### (.*)$/gm, '<h6>$1</h6>');
+  html = html.replace(/^##### (.*)$/gm, '<h5>$1</h5>');
+  html = html.replace(/^#### (.*)$/gm, '<h4>$1</h4>');
+  html = html.replace(/^### (.*)$/gm, '<h3>$1</h3>');
+  html = html.replace(/^## (.*)$/gm, '<h2>$1</h2>');
+  html = html.replace(/^# (.*)$/gm, '<h1>$1</h1>');
+
+  // Convert bold **text** or __text__
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/__(.*?)__/g, '<strong>$1</strong>');
+
+  // Convert italic *text* or _text_
+  // Avoid matching bold (already replaced), so negative lookahead/behind
+  html = html.replace(/(?<!\*)\*(?!\*)(.*?)\*/g, '<em>$1</em>');
+  html = html.replace(/(?<!_)_(?!_)(.*?)_/g, '<em>$1</em>');
+
+  // Convert inline code `code`
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+  // Convert blockquotes
+  html = html.replace(/^> (.*)$/gm, '<blockquote>$1</blockquote>');
+
+  // Convert unordered lists (bullets)
+  html = html.replace(/^\s*[-*+] (.*)$/gm, '<li>$1</li>');
+  html = html.replace(/(<li>.*<\/li>)/gms, '<ul>$1</ul>');
+
+  // Convert ordered lists
+  html = html.replace(/^\s*\d+\. (.*)$/gm, '<li>$1</li>');
+  html = html.replace(/(<li>.*<\/li>)/gms, '<ol>$1</ol>');
+
+  // Convert paragraphs (lines separated by blank lines)
+  html = html.replace(/^(?!<(h\d|ul|ol|li|blockquote|pre|code|\/ul|\/ol|\/li|\/blockquote|\/pre|\/code|strong|em|blockquote))(.+)(?:\n|$)/gm, '<p>$2</p>');
+
+  // Fix nested lists: avoid double wrapping
+  html = html.replace(/<ul>\s*<ul>/g, '<ul>');
+  html = html.replace(/<ol>\s*<ol>/g, '<ol>');
+
+  // Convert code blocks (```...```) simplified, must be alone
+  html = html.replace(/```\n([\s\S]*?)\n```/g, function(m, code) {
+    return '<pre><code>' + code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</code></pre>';
+  });
+
+  // Remove empty paragraphs
+  html = html.replace(/<p><\/p>/g, '');
+
+  return html;
+}
+
+// Word count function
+function countWords(str) {
+  if (!str) return 0;
+  // Match words ignoring punctuation
+  const matches = str.match(/\b\w+\b/g);
+  return matches ? matches.length : 0;
+}
+
+// DOM Elements
+const tabs = document.querySelectorAll('#markdown-tabs button');
+const markdownOutput = document.getElementById('markdown-output');
+const markdownSource = document.getElementById('markdown-source');
+const markdownSourceContainer = document.getElementById('markdown-source-container');
+const markdownSourceLabel = document.getElementById('markdown-source-label');
+const wordCountBadge = document.getElementById('markdown-word-count');
+const errorMessage = document.getElementById('error-message');
+
+// Number formatter for word count
+const numberFormatter = new Intl.NumberFormat();
+
+// State
+let currentMarkdown = '';
+let activeTab = 'rendered';
+let currentSourceLabel = 'Default content';
+
+// Utility: Switch tabs
+function switchTab(newTabId) {
+  if (activeTab === newTabId) return;
+
+  activeTab = newTabId;
+
+  tabs.forEach(button => {
+    const isSelected = button.id === (newTabId === 'rendered' ? 'tab-rendered' : 'tab-source');
+    button.setAttribute('aria-selected', isSelected);
+    button.tabIndex = isSelected ? 0 : -1;
+  });
+
+  if (newTabId === 'rendered') {
+    markdownOutput.hidden = false;
+    markdownSourceContainer.hidden = true;
+    markdownOutput.setAttribute('tabindex', '0');
+    markdownSourceContainer.removeAttribute('tabindex');
+  } else {
+    markdownOutput.hidden = true;
+    markdownSourceContainer.hidden = false;
+    markdownSourceContainer.setAttribute('tabindex', '0');
+    markdownOutput.removeAttribute('tabindex');
+    markdownSource.focus();
+  }
+}
+
+// Render Markdown -> HTML function
+function renderMarkdown(md) {
+  try {
+    const html = simpleMarkdownParse(md);
+    markdownOutput.innerHTML = html;
+    updateWordCount(md);
+    errorMessage.style.display = 'none';
+  } catch (e) {
+    errorMessage.textContent = 'Error rendering Markdown: ' + e.message;
+    errorMessage.style.display = 'block';
+  }
+}
+
+// Update word count badge
+function updateWordCount(md) {
+  const words = countWords(md);
+  wordCountBadge.textContent = numberFormatter.format(words);
+}
+
+// Load Markdown from string and update views
+function loadMarkdown(md, label = 'Default content') {
+  currentMarkdown = md;
+  markdownSource.value = md;
+  markdownSourceLabel.textContent = 'Source: ' + label;
+  currentSourceLabel = label;
+  renderMarkdown(md);
+}
+
+// On source textarea input
+markdownSource.addEventListener('input', () => {
+  currentMarkdown = markdownSource.value;
+  renderMarkdown(currentMarkdown);
+});
+
+// On tab button click
+tabs.forEach(button => {
+  button.addEventListener('click', () => {
+    switchTab(button.id === 'tab-rendered' ? 'rendered' : 'source');
+  });
+  button.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      const currentIndex = Array.from(tabs).indexOf(document.activeElement);
+      let nextIndex;
+      if (e.key === 'ArrowLeft') {
+        nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+      } else {
+        nextIndex = (currentIndex + 1) % tabs.length;
       }
-    })();
-  </script>
+      tabs[nextIndex].focus();
+    }
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      button.click();
+    }
+  });
+});
+
+// Fetch markdown from given url
+async function fetchMarkdownFromUrl(url) {
+  try {
+    errorMessage.style.display = 'none';
+    const response = await fetch(url, {cache: 'no-store'});
+    if (!response.ok) {
+      throw new Error(`HTTP error ${response.status}`);
+    }
+    const text = await response.text();
+    loadMarkdown(text, url);
+  } catch (error) {
+    errorMessage.textContent = `Failed to load Markdown from URL: ${error.message}`;
+    errorMessage.style.display = 'block';
+    // Fallback: load empty
+    loadMarkdown('', 'Failed to load URL');
+  }
+}
+
+// Initialization: check for ?url= parameter
+function init() {
+  const params = new URLSearchParams(window.location.search);
+  const url = params.get('url');
+  if (url) {
+    fetchMarkdownFromUrl(url.trim());
+  } else {
+    // Fallback default Markdown content
+    const defaultMd = `# Welcome to Markdown Tabs Viewer
+
+- Use the tabs above to switch views.
+- Edit the source tab to see updates live.
+- Append \`?url=encoded_markdown_url\` to load Markdown from a web URL.
+
+Enjoy!`;
+    loadMarkdown(defaultMd);
+  }
+  switchTab('rendered');
+}
+
+init();
+</script>
+
 </body>
 </html>
