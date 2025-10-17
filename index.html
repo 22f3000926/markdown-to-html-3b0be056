@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Markdown to HTML Renderer</title>
+  
+  <!-- Highlight.js default style -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css"
+    integrity="sha512-YAVElMUpWLoZKRCKxEjKRHL3dwApmO0QrgxaJcOvFAZWcTRFv8sq4hr4e3vK7nj62lmB6a0C+PgVAAXSmd6syQ=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+        Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      background-color: #f9f9f9;
+      color: #24292e;
+    }
+    #markdown-output {
+      background: white;
+      padding: 2rem;
+      border-radius: 6px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      overflow-wrap: break-word;
+    }
+    pre.hljs {
+      padding: 1rem !important;
+      border-radius: 4px;
+      font-size: 0.95rem;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+    p {
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Markdown Renderer</h1>
+  <div id="markdown-output">Loading markdown content...</div>
+
+  <!-- marked library from CDN -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"
+    integrity="sha256-n4gHtYq2cM2P5EyVgYNV493QFGi1/YrTqFidXItbiFs="
+    crossorigin="anonymous"
+  ></script>
+  <!-- highlight.js library from CDN -->
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"
+    integrity="sha512-cp5pqPnvKxrryxW8UuCfXs17uyn3/WI9s+daka3PJTJNd9ViODvHYZIXp0kSXNWeQ8XiVmz4kjkP7E5rSC6yTA=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  ></script>
+
+  <script>
+    // Immediately Invoked Async Function to fetch and render markdown
+    (async function () {
+      const outputEl = document.getElementById('markdown-output');
+
+      try {
+        const response = await fetch('input.md');
+        if (!response.ok) throw new Error(`Failed to fetch input.md: ${response.status} ${response.statusText}`);
+
+        const markdownText = await response.text();
+
+        // Parse markdown into HTML
+        const htmlContent = marked.parse(markdownText, {
+          // Use GitHub flavored markdown
+          gfm: true,
+          breaks: true,
+        });
+
+        // Set the output element's HTML
+        outputEl.innerHTML = htmlContent;
+
+        // Highlight all code blocks
+        document.querySelectorAll('#markdown-output pre code').forEach((block) => {
+          try {
+            hljs.highlightElement(block);
+          } catch (e) {
+            // In case language is unknown or highlighting fails
+            console.warn('Highlight.js failed on a code block:', e);
+          }
+        });
+      } catch (error) {
+        outputEl.textContent = 'Error loading markdown content: ' + error.message;
+        console.error(error);
+      }
+    })();
+  </script>
+</body>
+</html>
