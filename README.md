@@ -1,29 +1,38 @@
-# Markdown to HTML Static Page Renderer
+# Markdown Tabs Viewer
 
-This project provides a static web page that converts a markdown file (`input.md`) to HTML using the `marked` library, then renders the resulting HTML into a page element with the ID `#markdown-output`. Additionally, it integrates `highlight.js` to apply syntax highlighting to any code blocks in the rendered markdown.
+This is a simple and professional web app that allows users to view Markdown content in two synchronized tabs: the rendered HTML view and the original Markdown source. It supports loading Markdown content from a URL specified in the `?url=` query parameter and displays the active source URL or default label accordingly.
+
+Additionally, it features a live-updating word count badge, formatted using `Intl.NumberFormat` for locale-sensitive number formatting.
 
 ## Features
-- Parses `input.md` on page load to HTML.
-- Renders parsed HTML inside the `#markdown-output` container.
-- Automatically highlights code blocks leveraging `highlight.js`.
-- Uses CDN links for `marked` and `highlight.js` for simplicity and performance.
 
-## How to Use / View
-1. Place your markdown content into the `input.md` file.
-2. Open `index.html` in any modern web browser.
-3. The page will render the markdown content as HTML with syntax-highlighted code blocks.
+- Two tabs: **Rendered** (HTML) and **Source** (original Markdown) with synchronized content
+- Load Markdown content from external URLs via the `?url=` query parameter
+- Display the current source URL or a default label
+- Live word count badge updated on every render
+- Responsive and accessible UI
 
-## Technical Details / Dependencies
-- Uses [marked](https://github.com/markedjs/marked) (v4.x) for markdown parsing.
-- Uses [highlight.js](https://highlightjs.org/) (latest) for code syntax highlighting.
-- The markdown content is fetched at runtime via `fetch`.
+## How to Use / Run
 
-## Notes
-- The solution fetches `input.md` using Fetch API, so accessing the page locally may require a web server due to CORS restrictions in some browsers.
-  - Recommended running:
-    - Using Python 3+: `python -m http.server`
-    - Or any static server of your choice.
-- Highlight.js automatically detects the language of code blocks; you can customize it with supported languages if desired.
+1. Clone or download all the project files.
+2. Open `index.html` in any modern web browser (no server needed for local Markdown input).
+3. To load Markdown from an external URL, append `?url=ENCODED_URL` to the address bar, e.g.:  
+   `file:///path/to/index.html?url=https%3A%2F%2Fraw.githubusercontent.com%2Fuser%2Frepo%2Fbranch%2FREADME.md`
+4. Use the **Rendered** and **Source** tabs to toggle views. Changes in the Markdown source tab immediately update the rendered preview.
+
+## Technical Details
+
+- Plain JavaScript (ES6+) without dependencies
+- Uses the modern `fetch` API to load external Markdown content
+- Tabs implemented with buttons inside a container
+- Markdown is rendered using a lightweight embedded `marked` parser (included as a small JS snippet in the script) for simplicity and performance
+- Word count is updated live on source changes
+- Number formatting via `Intl.NumberFormat` for locale-aware comma separators
+- Basic CSS included for professional styling and clear UX
+
+## Dependencies
+
+None external. All code and markdown rendering logic is embedded within the project files.
 
 ## License
 
