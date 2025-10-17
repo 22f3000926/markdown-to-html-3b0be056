@@ -1,20 +1,7 @@
 # Sample Markdown
 
-This is a sample markdown file to demonstrate the markdown renderer.
+This is a test document with seed 123.
 
-## Code Example
-
-```javascript
-function greet(name) {
-  console.log(`Hello, ${name}!`);
-}
-
-greet('World');
+```python
+print('Hello World')
 ```
-
-## Features
-- Parses markdown using **marked**
-- Syntax highlights code blocks with **highlight.js**
-- Loads the markdown file dynamically
-
-Happy coding!
